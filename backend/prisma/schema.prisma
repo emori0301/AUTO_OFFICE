@@ -6,3 +6,131 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Branch {
+  id     String  @id @default(uuid())
+  name   String
+  users  User[]
+  floors Floor[]
+}
+
+model Floor {
+  id            String         @id @default(uuid())
+  name          String
+  branchId      String
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  layoutObjects LayoutObject[]
+}
+
+model LayoutObject {
+  id      String  @id @default(uuid())
+  floorId String
+  floor   Floor   @relation(fields: [floorId], references: [id])
+  type    String  // desk | chair | meeting_room | lounge | office
+  label   String?
+  x       Int
+  y       Int
+  width   Int     @default(1)
+  height  Int     @default(1)
+  props   Json?
+}
+
+model User {
+  id              String       @id @default(uuid())
+  displayName     String
+  email           String       @unique
+  googleId        String?      @unique
+  slackUserId     String?      @unique
+  role            String       @default("member") // member | admin
+  jobTitle        String?
+  branchId        String
+  branch          Branch       @relation(fields: [branchId], references: [id])
+  workStyle       String       @default("office")
+  // office | remote | ses | vacation | business_trip | early_leave | in_meeting
+  birthDate       DateTime?
+  joinDate        DateTime?
+  deskX           Int?
+  deskY           Int?
+  floorId         String?
+  points          Int          @default(0)
+  avatarConfig    Json?
+  createdAt       DateTime     @default(now())
+  profiles        UserProfile[]
+  groups          UserGroup[]
+  chatMemberships ChatMember[]
+}
+
+model ProfileQuestion {
+  id       String        @id @default(uuid())
+  question String
+  order    Int
+  isActive Boolean       @default(true)
+  answers  UserProfile[]
+}
+
+model UserProfile {
+  id         String          @id @default(uuid())
+  userId     String
+  questionId String
+  answer     String
+  user       User            @relation(fields: [userId], references: [id])
+  question   ProfileQuestion @relation(fields: [questionId], references: [id])
+}
+
+model Group {
+  id         String      @id @default(uuid())
+  name       String
+  category   String      // project | team | club
+  assignType String?     // client | inhouse（projectのみ）
+  isActive   Boolean     @default(true)
+  members    UserGroup[]
+}
+
+model UserGroup {
+  userId     String
+  groupId    String
+  role       String? // PM | engineer 等（projectのみ）
+  assignRate Int?    // 0-100（projectのみ）
+  user       User    @relation(fields: [userId], references: [id])
+  group      Group   @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+}
+
+model ChatRoom {
+  id        String        @id @default(uuid())
+  name      String?
+  type      String        // direct | group
+  members   ChatMember[]
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+}
+
+model ChatMember {
+  roomId String
+  userId String
+  room   ChatRoom @relation(fields: [roomId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
+
+  @@id([roomId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  roomId    String
+  senderId  String
+  body      String
+  createdAt DateTime @default(now())
+  expiresAt DateTime // createdAt + 24h、バッチで削除
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+}
+
+model PointGrant {
+  id         String   @id @default(uuid())
+  grantedBy  String
+  targetType String   // user | branch | group
+  targetId   String
+  amount     Int
+  reason     String?
+  createdAt  DateTime @default(now())
+}

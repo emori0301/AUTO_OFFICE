@@ -11,10 +11,18 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@slack/web-api": "^7.16.0",
+    "@types/express-session": "^1.19.0",
+    "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.17",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "express-session": "^1.19.0",
+    "googleapis": "^173.0.0",
     "ioredis": "^5.4.2",
     "node-cron": "^3.0.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
