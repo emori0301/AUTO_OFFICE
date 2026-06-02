@@ -121,28 +121,13 @@ export function ChatPanel() {
   // Others = all users except self
   const otherUsers = userInfos.filter(u => u.id !== currentUserId);
 
-  // Toggle button when closed
-  if (!chatPanelOpen) {
-    return (
-      <button
-        onClick={() => setChatPanelOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 shadow-lg flex items-center justify-center transition-colors"
-        title="チャットを開く"
-      >
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
-        </svg>
-      </button>
-    );
-  }
+  if (!chatPanelOpen) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-80 h-[480px] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed bottom-6 right-5 z-50 w-80 h-[500px] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3.5 bg-gray-800 border-b border-gray-700 shrink-0">
         {activeChatRoomId ? (
           <button
             onClick={() => setActiveChatRoomId(null)}
@@ -319,7 +304,7 @@ export function ChatPanel() {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-3 border-t border-gray-700 flex gap-2 shrink-0">
+          <div className="px-3 py-3.5 border-t border-gray-700 flex gap-2 shrink-0">
             <input
               type="text"
               value={input}

@@ -80,9 +80,9 @@ export function UserDetailCard({ onOpenProfile }: Props) {
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50" />
         <Dialog.Content
           className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50
-                     w-[420px] max-h-[80vh] overflow-y-auto
-                     bg-gray-900 border border-gray-700 rounded-xl shadow-2xl
-                     text-white p-6 flex flex-col gap-4"
+                     w-[440px] max-h-[82vh] overflow-y-auto
+                     bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl
+                     text-white p-7 flex flex-col gap-5"
         >
           {loading && (
             <div className="text-gray-400 text-sm text-center py-8">読み込み中...</div>

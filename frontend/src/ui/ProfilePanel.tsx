@@ -60,11 +60,12 @@ export function ProfilePanel({ open, userId, onClose }: Props) {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 w-80 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl
-                  transition-all duration-300 ease-out
-                  ${open ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'}`}
+      className={`fixed top-[41px] right-0 z-40 w-72 h-[calc(100vh-41px)]
+                  bg-gray-900 border-l border-gray-700/80 shadow-[-8px_0_32px_rgba(0,0,0,0.4)]
+                  flex flex-col transition-transform duration-300 ease-out
+                  ${open ? 'translate-x-0' : 'translate-x-full pointer-events-none'}`}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-800 shrink-0">
         <span className="text-sm font-semibold">プロフィール</span>
         <button
           onClick={onClose}
@@ -74,7 +75,7 @@ export function ProfilePanel({ open, userId, onClose }: Props) {
         </button>
       </div>
 
-      <div className="p-4 max-h-[70vh] overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto">
         {loading && (
           <div className="text-gray-500 text-sm text-center py-6">読み込み中...</div>
         )}
@@ -135,3 +136,4 @@ export function ProfilePanel({ open, userId, onClose }: Props) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useOfficeStore } from '../store/useOfficeStore';
 import { hasActiveFilter } from '../utils/filter';
 import { WORKSTYLE_OPTIONS, ASSIGN_DOT_OPTIONS } from '../constants/workStyle';
@@ -29,6 +29,66 @@ function FilterTag({
   );
 }
 
+function AccordionSection({
+  title,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between py-1 group"
+      >
+        <h4 className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">
+          {title}
+        </h4>
+        <svg
+          className={`w-3 h-3 text-gray-600 transition-transform group-hover:text-gray-400 ${open ? 'rotate-0' : '-rotate-90'}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && <div className="mt-1.5">{children}</div>}
+    </section>
+  );
+}
+
+function GroupFilterList({
+  names,
+  filterGroupNames,
+  toggleFilterGroupName,
+}: {
+  names: string[];
+  filterGroupNames: string[];
+  toggleFilterGroupName: (name: string) => void;
+}) {
+  if (names.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-1">
+      {names.map(name => (
+        <button
+          key={name}
+          onClick={() => toggleFilterGroupName(name)}
+          className={`text-left px-2.5 py-1.5 rounded-lg text-xs transition-all border
+            ${filterGroupNames.includes(name)
+              ? 'bg-indigo-900/50 text-indigo-300 border-indigo-700'
+              : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600 hover:text-gray-300'
+            }`}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function Sidebar() {
   const filterText       = useOfficeStore(s => s.filter.filterText);
   const filterWorkStyles = useOfficeStore(s => s.filter.filterWorkStyles);
@@ -44,15 +104,28 @@ export function Sidebar() {
   const toggleFilterGroupName = useOfficeStore(s => s.toggleFilterGroupName);
   const clearFilters          = useOfficeStore(s => s.clearFilters);
 
-  const availableGroups = useMemo(() => {
-    const seen = new Map<string, string>();
+  const groupsByCategory = useMemo(() => {
+    const project = new Map<string, string>();
+    const team    = new Map<string, string>();
+    const club    = new Map<string, string>();
     for (const info of userInfos) {
       for (const g of info.groups) {
-        seen.set(g.groupName, g.groupName);
+        if (g.category === 'project') project.set(g.groupName, g.groupName);
+        else if (g.category === 'team') team.set(g.groupName, g.groupName);
+        else if (g.category === 'club') club.set(g.groupName, g.groupName);
       }
     }
-    return Array.from(seen.values()).sort();
+    return {
+      project: Array.from(project.values()).sort(),
+      team:    Array.from(team.values()).sort(),
+      club:    Array.from(club.values()).sort(),
+    };
   }, [userInfos]);
+
+  const hasGroups =
+    groupsByCategory.project.length > 0 ||
+    groupsByCategory.team.length > 0 ||
+    groupsByCategory.club.length > 0;
 
   const availableBranches = useMemo(() => {
     const seen = new Map<string, string>();
@@ -65,7 +138,7 @@ export function Sidebar() {
   return (
     <aside className="w-56 h-full flex flex-col bg-gray-950 border-r border-gray-800 text-white overflow-y-auto shrink-0">
       {/* Search */}
-      <div className="px-3 pt-3 pb-2">
+      <div className="px-3 pt-4 pb-2.5">
         <div className="relative">
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs">🔍</span>
           <input
@@ -92,10 +165,9 @@ export function Sidebar() {
         </div>
       )}
 
-      <div className="flex-1 px-3 pb-4 flex flex-col gap-4 overflow-y-auto">
-        {/* WorkStyle filter */}
-        <section>
-          <h4 className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">在籍形態</h4>
+      <div className="flex-1 px-3 pb-5 flex flex-col gap-4 overflow-y-auto">
+        {/* WorkStyle filter — accordion */}
+        <AccordionSection title="在籍形態">
           <div className="flex flex-wrap gap-1.5">
             {WORKSTYLE_OPTIONS.map(o => (
               <FilterTag
@@ -107,11 +179,10 @@ export function Sidebar() {
               />
             ))}
           </div>
-        </section>
+        </AccordionSection>
 
-        {/* AssignDot filter */}
-        <section>
-          <h4 className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">アサイン状況</h4>
+        {/* AssignDot filter — accordion */}
+        <AccordionSection title="アサイン状況">
           <div className="flex flex-wrap gap-1.5">
             {ASSIGN_DOT_OPTIONS.map(o => (
               <FilterTag
@@ -123,12 +194,11 @@ export function Sidebar() {
               />
             ))}
           </div>
-        </section>
+        </AccordionSection>
 
         {/* Branch filter */}
         {availableBranches.length > 1 && (
-          <section>
-            <h4 className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">拠点</h4>
+          <AccordionSection title="拠点">
             <div className="flex flex-wrap gap-1.5">
               {availableBranches.map(name => (
                 <button
@@ -144,34 +214,50 @@ export function Sidebar() {
                 </button>
               ))}
             </div>
-          </section>
+          </AccordionSection>
         )}
 
-        {/* Group filter */}
-        {availableGroups.length > 0 && (
-          <section>
-            <h4 className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">グループ</h4>
-            <div className="flex flex-col gap-1">
-              {availableGroups.map(name => (
-                <button
-                  key={name}
-                  onClick={() => toggleFilterGroupName(name)}
-                  className={`text-left px-2.5 py-1.5 rounded-lg text-xs transition-all border
-                    ${filterGroupNames.includes(name)
-                      ? 'bg-indigo-900/50 text-indigo-300 border-indigo-700'
-                      : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600 hover:text-gray-300'
-                    }`}
-                >
-                  {name}
-                </button>
-              ))}
+        {/* Group filter — accordion, split by category */}
+        {hasGroups && (
+          <AccordionSection title="グループ">
+            <div className="flex flex-col gap-3">
+              {groupsByCategory.project.length > 0 && (
+                <div>
+                  <p className="text-[9px] text-gray-600 uppercase tracking-wider mb-1 px-0.5">案件</p>
+                  <GroupFilterList
+                    names={groupsByCategory.project}
+                    filterGroupNames={filterGroupNames}
+                    toggleFilterGroupName={toggleFilterGroupName}
+                  />
+                </div>
+              )}
+              {groupsByCategory.team.length > 0 && (
+                <div>
+                  <p className="text-[9px] text-gray-600 uppercase tracking-wider mb-1 px-0.5">チーム</p>
+                  <GroupFilterList
+                    names={groupsByCategory.team}
+                    filterGroupNames={filterGroupNames}
+                    toggleFilterGroupName={toggleFilterGroupName}
+                  />
+                </div>
+              )}
+              {groupsByCategory.club.length > 0 && (
+                <div>
+                  <p className="text-[9px] text-gray-600 uppercase tracking-wider mb-1 px-0.5">部活動</p>
+                  <GroupFilterList
+                    names={groupsByCategory.club}
+                    filterGroupNames={filterGroupNames}
+                    toggleFilterGroupName={toggleFilterGroupName}
+                  />
+                </div>
+              )}
             </div>
-          </section>
+          </AccordionSection>
         )}
       </div>
 
       {/* Footer: member count */}
-      <div className="px-3 py-2 border-t border-gray-800 text-[10px] text-gray-600">
+      <div className="px-3 py-3 border-t border-gray-800 text-[10px] text-gray-600">
         {users.length} 名在籍
       </div>
     </aside>
